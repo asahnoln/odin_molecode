@@ -44,12 +44,33 @@ hit :: proc(t: ^testing.T) {
 	}
 }
 
+@(test)
 player_hit_specific_sol :: proc(t: ^testing.T) {
 	p := beat.Processor {
 		apm     = 60,
 		pattern = {2, 4, 2},
 	}
 
-	got := beat.is_sol_hit(p, 2, 1500 * time.Millisecond)
-	testing.expect(t, got)
+	tests := []struct {
+		sol:  int,
+		time: time.Duration,
+		want: bool,
+	} {
+		// Format
+		{2, 1500 * time.Millisecond, true},
+		// {1, 1500 * time.Millisecond, false},
+	}
+
+	for tt in tests {
+		got := beat.is_sol_hit(p, tt.sol, tt.time)
+		testing.expectf(
+			t,
+			got == tt.want,
+			"For sol %v in time %v want %v, got %v",
+			tt.sol,
+			tt.time,
+			tt.want,
+			got,
+		)
+	}
 }
