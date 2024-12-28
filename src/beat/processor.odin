@@ -12,6 +12,7 @@ Pattern :: []int
 Processor :: struct {
 	apm:     f64,
 	pattern: Pattern,
+	leeway:  time.Duration,
 }
 
 which_sol_hit :: proc(using p: Processor, t: time.Duration) -> int {
@@ -29,7 +30,7 @@ which_sol_hit :: proc(using p: Processor, t: time.Duration) -> int {
 		if s == pattern_sum {
 			break
 		}
-		if mod != s {
+		if abs(s - mod) > time.duration_seconds(leeway) {
 			continue
 		}
 

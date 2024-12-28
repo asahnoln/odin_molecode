@@ -58,7 +58,7 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 	} {
 		// Format
 		{2, 1500 * time.Millisecond, true},
-		// {1, 1500 * time.Millisecond, false},
+		{1, 1500 * time.Millisecond, false},
 	}
 
 	for tt in tests {
@@ -73,4 +73,17 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 			got,
 		)
 	}
+}
+
+@(test)
+hit_has_a_leeway :: proc(t: ^testing.T) {
+	p := beat.Processor {
+		apm     = 60,
+		pattern = {2, 4, 2},
+		leeway  = 100 * time.Millisecond,
+	}
+
+	// TODO: Remove leeway before
+	got := beat.is_hit(p, 600 * time.Millisecond)
+	testing.expect(t, got)
 }
