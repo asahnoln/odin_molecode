@@ -1,7 +1,6 @@
 package beat
 
 import "core:math"
-import "core:time"
 
 SECONDS_IN_MINUTE :: 60
 MATRAS_PER_AKCHARAM :: 4
@@ -10,27 +9,26 @@ Pattern :: []int
 
 // apm = akcharams per minute (nearly same as beats per minute, but not quite)
 Processor :: struct {
-	apm:     f64,
+	apm:     f32,
 	pattern: Pattern,
-	leeway:  time.Duration,
 }
 
-which_sol_hit :: proc(using p: Processor, t: time.Duration) -> int {
+which_sol_hit :: proc(using p: Processor, t: f32) -> int {
 	matra := SECONDS_IN_MINUTE / apm / MATRAS_PER_AKCHARAM
 
-	pattern_sum := cast(f64)math.sum(pattern)
-	mod := math.mod(time.duration_seconds(t), matra * pattern_sum)
+	pattern_sum := cast(f32)math.sum(pattern)
+	mod := math.mod(t, matra * pattern_sum)
 	if mod == 0 {
 		return 0
 	}
 
-	s: f64 = 0
+	s: f32 = 0
 	for p, i in pattern {
-		s += cast(f64)p * matra
+		s += cast(f32)p * matra
 		if s == pattern_sum {
 			break
 		}
-		if abs(s - mod) > time.duration_seconds(leeway) {
+		if mod != s {
 			continue
 		}
 
@@ -40,10 +38,24 @@ which_sol_hit :: proc(using p: Processor, t: time.Duration) -> int {
 	return -1
 }
 
-is_hit :: proc(using p: Processor, t: time.Duration) -> bool {
+is_hit :: proc(using p: Processor, t: f32) -> bool {
 	return which_sol_hit(p, t) != -1
 }
 
-is_sol_hit :: proc(using p: Processor, i: int, t: time.Duration) -> bool {
+is_sol_hit :: proc(using p: Processor, i: int, t: f32) -> bool {
 	return which_sol_hit(p, t) == i
+}
+
+correct_hit_time :: proc(using p: Processor, t: f32, leeway: [2]f32) -> (f: f32, ok: bool) {
+	matra := SECONDS_IN_MINUTE / apm / MATRAS_PER_AKCHARAM
+	s: f32 = 0
+	for p in pattern {
+		s += cast(f32)p * matra
+
+		if t - s >= 0 && t - s <= leeway[1] {
+			return s, true
+		}
+	}
+
+	return 0, false
 }

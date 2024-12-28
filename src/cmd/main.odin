@@ -2,18 +2,8 @@ package main
 
 import "core:fmt"
 import "core:strings"
-import "core:time"
 import "src:beat"
 import rl "vendor:raylib"
-
-// Convert float seconds to time.Duration seconds
-f2s :: proc(t: f32) -> time.Duration {
-	return time.Duration(t * f32(time.Second))
-}
-
-f64tos :: proc(t: f64) -> time.Duration {
-	return time.Duration(t * f64(time.Second))
-}
 
 main :: proc() {
 	rl.InitWindow(640, 480, "molecode")
@@ -32,12 +22,12 @@ main :: proc() {
 
 	p := beat.Processor {
 		apm     = 60,
-		pattern = {2, 2},
-		leeway  = 100 * time.Millisecond,
+		pattern = {4, 2, 2},
 	}
 
 	rl.PlayMusicStream(m)
 
+	i := 0
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		defer rl.EndDrawing()
@@ -53,9 +43,23 @@ main :: proc() {
 			20,
 			rl.RED,
 		)
+		rl.DrawText(
+			strings.clone_to_cstring(fmt.tprintf("%v", rl.GetTime())),
+			200,
+			400,
+			20,
+			rl.RED,
+		)
+		rl.DrawText(
+			strings.clone_to_cstring(fmt.tprintf("%v", rl.GetMusicTimePlayed(m))),
+			200,
+			100,
+			20,
+			rl.YELLOW,
+		)
 
 		if rl.IsKeyPressed(.SPACE) {
-			if beat.is_hit(p, f2s(rl.GetMusicTimePlayed(m))) {
+			if beat.is_hit(p, rl.GetMusicTimePlayed(m)) {
 				rl.PlaySound(s)
 				rl.DrawText("HIT", 300, 200, 20, rl.GREEN)
 			} else {
@@ -65,9 +69,9 @@ main :: proc() {
 		}
 
 
-		// if beat.is_hit(p, f64tos(rl.GetTime())) {
-		// 	// FIX: Multiple sounds
-		// 	rl.PlaySound(s)
-		// }
+		if beat.is_sol_hit(p, i, rl.GetMusicTimePlayed(m)) {
+			rl.PlaySound(s)
+			i = (i + 1) % len(p.pattern)
+		}
 	}
 }

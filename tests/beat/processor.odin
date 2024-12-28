@@ -1,7 +1,6 @@
 package beat_test
 
 import "core:testing"
-import "core:time"
 import "src:beat"
 
 @(test)
@@ -11,21 +10,21 @@ hit :: proc(t: ^testing.T) {
 	}
 
 	tests := []struct {
-		time:    time.Duration,
+		time:    f32,
 		pattern: []int,
 		want:    bool,
 	} {
 		// Format
-		{1 * time.Second, {4}, true},
-		{1500 * time.Millisecond, {2}, true},
-		{2 * time.Second, {4}, true},
-		{1750 * time.Millisecond, {4}, false},
-		{500 * time.Millisecond, {2, 4}, true},
-		{1000 * time.Millisecond, {4, 2}, true},
-		{1500 * time.Millisecond, {4, 2, 2}, true},
-		{3500 * time.Millisecond, {2, 4, 2}, true},
-		{5000 * time.Millisecond, {3, 3, 3, 1, 1, 1, 1, 1}, true},
-		{4000 * time.Millisecond, {3, 3, 3, 1, 1, 1, 1, 1}, false},
+		{1, {4}, true},
+		{1.500, {2}, true},
+		{2, {4}, true},
+		{1.750, {4}, false},
+		{0.5, {2, 4}, true},
+		{1.000, {4, 2}, true},
+		{1.500, {4, 2, 2}, true},
+		{3.500, {2, 4, 2}, true},
+		{5.000, {3, 3, 3, 1, 1, 1, 1, 1}, true},
+		{4.000, {3, 3, 3, 1, 1, 1, 1, 1}, false},
 	}
 
 	for tt in tests {
@@ -53,12 +52,12 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 
 	tests := []struct {
 		sol:  int,
-		time: time.Duration,
+		time: f32,
 		want: bool,
 	} {
 		// Format
-		{2, 1500 * time.Millisecond, true},
-		{1, 1500 * time.Millisecond, false},
+		{2, 1.500, true},
+		{1, 1.500, false},
 	}
 
 	for tt in tests {
@@ -76,14 +75,62 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 }
 
 @(test)
-hit_has_a_leeway :: proc(t: ^testing.T) {
+correct_hit_time :: proc(t: ^testing.T) {
 	p := beat.Processor {
 		apm     = 60,
-		pattern = {2, 4, 2},
-		leeway  = 100 * time.Millisecond,
+		pattern = {2, 2, 4},
 	}
 
-	// TODO: Remove leeway before
-	got := beat.is_hit(p, 600 * time.Millisecond)
-	testing.expect(t, got)
+	tests := []struct {
+		t:      f32,
+		leeway: [2]f32,
+		want:   f32,
+		ok:     bool,
+	} {
+		// Format
+		{1050, {0, 50}, 1000, true},
+		{1100, {0, 50}, 0, false},
+	}
+
+
+	for tt in tests {
+		got, ok := beat.correct_hit_time(p, tt.t, tt.leeway)
+		testing.expectf(
+			t,
+			ok == tt.ok && got == tt.want,
+			"For time %v and leeway %v want %v, got %v (want ok %v, got %v)",
+			tt.t,
+			tt.leeway,
+			tt.want,
+			got,
+			tt.ok,
+			ok,
+		)
+	}
+
 }
+
+// @(test)
+// hit_has_a_leeway :: proc(t: ^testing.T) {
+// 	p := beat.Processor {
+// 		apm     = 60,
+// 		pattern = {2, 4, 2},
+// 		leeway  = 0.1,
+// 	}
+//
+// 	got := beat.is_hit(p, 0.55)
+// 	testing.expect(t, got)
+// }
+//
+// @(test)
+// hit_has_a_leeway_before :: proc(t: ^testing.T) {
+// 	p := beat.Processor {
+// 		apm           = 60,
+// 		pattern       = {2, 4, 2},
+// 		leeway        = 0.1,
+// 		leeway_before = 0.1,
+// 	}
+//
+// 	got := beat.is_hit(p, 0.55)
+// 	testing.expect(t, got)
+// }
