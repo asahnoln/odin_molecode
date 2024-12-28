@@ -43,3 +43,13 @@ hit :: proc(t: ^testing.T) {
 		)
 	}
 }
+
+player_hit_specific_sol :: proc(t: ^testing.T) {
+	p := beat.Processor {
+		apm     = 60,
+		pattern = {2, 4, 2},
+	}
+
+	got := beat.is_sol_hit(p, 2, 1500 * time.Millisecond)
+	testing.expect(t, got)
+}
