@@ -16,15 +16,15 @@ hit :: proc(t: ^testing.T) {
 	} {
 		// Format
 		{1, {4}, true},
-		{1.500, {2}, true},
+		{1.5, {2}, true},
 		{2, {4}, true},
-		{1.750, {4}, false},
+		{1.75, {4}, false},
 		{0.5, {2, 4}, true},
-		{1.000, {4, 2}, true},
-		{1.500, {4, 2, 2}, true},
-		{3.500, {2, 4, 2}, true},
-		{5.000, {3, 3, 3, 1, 1, 1, 1, 1}, true},
-		{4.000, {3, 3, 3, 1, 1, 1, 1, 1}, false},
+		{1, {4, 2}, true},
+		{1.5, {4, 2, 2}, true},
+		{3.5, {2, 4, 2}, true},
+		{5, {3, 3, 3, 1, 1, 1, 1, 1}, true},
+		{4, {3, 3, 3, 1, 1, 1, 1, 1}, false},
 	}
 
 	for tt in tests {
@@ -56,8 +56,8 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 		want: bool,
 	} {
 		// Format
-		{2, 1.500, true},
-		{1, 1.500, false},
+		{2, 1.5, true},
+		{1, 1.5, false},
 	}
 
 	for tt in tests {
@@ -75,52 +75,22 @@ player_hit_specific_sol :: proc(t: ^testing.T) {
 }
 
 @(test)
-correct_hit_time :: proc(t: ^testing.T) {
+hit_has_a_leeway :: proc(t: ^testing.T) {
 	p := beat.Processor {
 		apm     = 60,
-		pattern = {2, 2, 4},
+		pattern = {2, 4, 2},
+		leeway  = {0.05, 0.1},
 	}
 
-	tests := []struct {
-		t:      f32,
-		leeway: [2]f32,
-		want:   f32,
-		ok:     bool,
-	} {
-		// Format
-		{1050, {0, 50}, 1000, true},
-		{1100, {0, 50}, 0, false},
-	}
+	got := beat.is_hit(p, 0.6)
+	testing.expect(t, got)
 
+	got = beat.is_hit(p, 0.45)
+	testing.expect(t, got)
 
-	for tt in tests {
-		got, ok := beat.correct_hit_time(p, tt.t, tt.leeway)
-		testing.expectf(
-			t,
-			ok == tt.ok && got == tt.want,
-			"For time %v and leeway %v want %v, got %v (want ok %v, got %v)",
-			tt.t,
-			tt.leeway,
-			tt.want,
-			got,
-			tt.ok,
-			ok,
-		)
-	}
-
+	got = beat.is_hit(p, 2.1)
+	testing.expect(t, got)
 }
-
-// @(test)
-// hit_has_a_leeway :: proc(t: ^testing.T) {
-// 	p := beat.Processor {
-// 		apm     = 60,
-// 		pattern = {2, 4, 2},
-// 		leeway  = 0.1,
-// 	}
-//
-// 	got := beat.is_hit(p, 0.55)
-// 	testing.expect(t, got)
-// }
 //
 // @(test)
 // hit_has_a_leeway_before :: proc(t: ^testing.T) {

@@ -4,6 +4,7 @@ import "core:math"
 
 SECONDS_IN_MINUTE :: 60
 MATRAS_PER_AKCHARAM :: 4
+MATH_LEEWAY :: 0.00001
 
 Pattern :: []int
 
@@ -11,6 +12,7 @@ Pattern :: []int
 Processor :: struct {
 	apm:     f32,
 	pattern: Pattern,
+	leeway:  [2]f32,
 }
 
 which_sol_hit :: proc(using p: Processor, t: f32) -> int {
@@ -18,7 +20,7 @@ which_sol_hit :: proc(using p: Processor, t: f32) -> int {
 
 	pattern_sum := cast(f32)math.sum(pattern)
 	mod := math.mod(t, matra * pattern_sum)
-	if mod == 0 {
+	if in_leeway(mod, leeway) {
 		return 0
 	}
 
@@ -28,7 +30,9 @@ which_sol_hit :: proc(using p: Processor, t: f32) -> int {
 		if s == pattern_sum {
 			break
 		}
-		if mod != s {
+
+		diff := mod - s
+		if !in_leeway(diff, leeway) {
 			continue
 		}
 
@@ -38,24 +42,14 @@ which_sol_hit :: proc(using p: Processor, t: f32) -> int {
 	return -1
 }
 
+in_leeway :: proc(mod: f32, leeway: [2]f32) -> bool {
+	return mod >= -leeway[0] - MATH_LEEWAY && mod <= leeway[1] + MATH_LEEWAY
+}
+
 is_hit :: proc(using p: Processor, t: f32) -> bool {
 	return which_sol_hit(p, t) != -1
 }
 
 is_sol_hit :: proc(using p: Processor, i: int, t: f32) -> bool {
 	return which_sol_hit(p, t) == i
-}
-
-correct_hit_time :: proc(using p: Processor, t: f32, leeway: [2]f32) -> (f: f32, ok: bool) {
-	matra := SECONDS_IN_MINUTE / apm / MATRAS_PER_AKCHARAM
-	s: f32 = 0
-	for p in pattern {
-		s += cast(f32)p * matra
-
-		if t - s >= 0 && t - s <= leeway[1] {
-			return s, true
-		}
-	}
-
-	return 0, false
 }

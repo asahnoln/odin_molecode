@@ -14,15 +14,25 @@ main :: proc() {
 
 	rl.SetTargetFPS(60)
 
-	m := rl.LoadMusicStream(#directory + "../../audio/rhythm_test.ogg")
+	m := rl.LoadMusicStream(#directory + "../../audio/rhythm_test.wav")
 	defer rl.UnloadMusicStream(m)
 
 	s := rl.LoadSound(#directory + "../../audio/molecode.wav")
 	defer rl.UnloadSound(s)
 
+	ps := rl.LoadSound(#directory + "../../audio/player.wav")
+	defer rl.UnloadSound(ps)
+
 	p := beat.Processor {
 		apm     = 60,
-		pattern = {4, 2, 2},
+		// pattern = {4},
+		pattern = {3, 3, 3, 1, 1, 1, 1, 1, 2},
+		leeway  = {0.05, 0.2},
+	}
+	npc := beat.Processor {
+		apm     = 60,
+		pattern = {3, 3, 3, 1, 1, 1, 1, 1, 2},
+		leeway  = {0, 0.1},
 	}
 
 	rl.PlayMusicStream(m)
@@ -60,7 +70,7 @@ main :: proc() {
 
 		if rl.IsKeyPressed(.SPACE) {
 			if beat.is_hit(p, rl.GetMusicTimePlayed(m)) {
-				rl.PlaySound(s)
+				rl.PlaySound(ps)
 				rl.DrawText("HIT", 300, 200, 20, rl.GREEN)
 			} else {
 
@@ -69,9 +79,9 @@ main :: proc() {
 		}
 
 
-		if beat.is_sol_hit(p, i, rl.GetMusicTimePlayed(m)) {
+		if beat.is_sol_hit(npc, i, rl.GetMusicTimePlayed(m)) {
 			rl.PlaySound(s)
-			i = (i + 1) % len(p.pattern)
+			i = (i + 1) % len(npc.pattern)
 		}
 	}
 }
