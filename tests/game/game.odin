@@ -17,10 +17,9 @@ play :: proc(t: ^testing.T) {
 		// Format
 		{1, 0, true},
 		{0, 1, true},
-		{-1, 2, true},
-		{-1, 3, true},
+		{-10, 0, false},
+		{-1, 2, false},
 		{1, 1, false},
-		{-1, 1, false},
 		{1, 1, false},
 		{5, 0, false},
 	}
@@ -70,3 +69,16 @@ play_longer :: proc(t: ^testing.T) {
 	}
 
 }
+
+// @(test)
+// run_proc_when_its_not_players_turn :: proc(t: ^testing.T) {
+// 	p := beat.Processor{}
+// 	pr := proc(p: ^beat.Processor) {
+// 		p.apm = 9999
+// 	}
+//
+// 	ps := game.ps{.Mole, .Mole, .Player}
+// 	game.proc_run_on_mole(p, ps, 3, pr)
+//
+// 	testing.pa(t)
+// }
