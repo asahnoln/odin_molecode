@@ -26,17 +26,23 @@ main :: proc() {
 
 	p := beat.Processor {
 		apm     = 60,
-		// pattern = {4},
-		pattern = {4, 2, 2, 4},
-		leeway  = {0.05, 0.2},
+		pattern = {4, 2, 2},
+		leeway  = {0.05, 0.25},
 	}
 	players := game.Players{.Mole, .Mole, .Mole, .Player}
 
 	rl.PlayMusicStream(m)
 
 	i := 0
+	j := 0
+	c := 0
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
+		for pl, x in players {
+			cl := rl.YELLOW if pl == .Player else rl.BLACK
+			rl.DrawRectangle(98 + cast(i32)x * 100, 98, 54, 54, x + 1 == j ? rl.GREEN : rl.GRAY)
+			rl.DrawRectangle(100 + cast(i32)x * 100, 100, 50, 50, cl)
+		}
 		defer rl.EndDrawing()
 
 		rl.UpdateMusicStream(m)
@@ -44,15 +50,20 @@ main :: proc() {
 		rl.ClearBackground(rl.WHITE)
 
 		if beat.is_sol_hit(p, i, rl.GetMusicTimePlayed(m)) {
-			if players[i] != .Player {
+			if players[j] != .Player {
 				rl.PlaySound(s)
 			}
 			i = (i + 1) % len(p.pattern)
+			j = (j + 1) % len(players)
+
+			if i == 0 {
+				c = j
+			}
 		}
 
 		if rl.IsKeyPressed(.SPACE) {
 			s := beat.which_sol_hit(p, rl.GetMusicTimePlayed(m))
-			if game.check_player_turn(p.pattern, players, s, 0) {
+			if game.check_player_turn(p.pattern, players, s, c) {
 				rl.PlaySound(ps)
 				rl.DrawText("HIT", 300, 200, 20, rl.GREEN)
 			} else {

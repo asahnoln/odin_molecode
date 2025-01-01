@@ -71,6 +71,21 @@ play_longer :: proc(t: ^testing.T) {
 }
 
 // @(test)
+// get_new_start :: proc(t: ^testing.T) {
+// 	testing.expect(t, false)
+// }
+//
+// @(test)
+// do_smth_when_player_right_or_wrong :: proc(t: ^testing.T) {
+// 	testing.expect(t, false)
+// }
+//
+// @(test)
+// do_smth_when_moles_turn :: proc(t: ^testing.T) {
+// 	testing.expect(t, false)
+// }
+
+// @(test)
 // run_proc_when_its_not_players_turn :: proc(t: ^testing.T) {
 // 	p := beat.Processor{}
 // 	pr := proc(p: ^beat.Processor) {
